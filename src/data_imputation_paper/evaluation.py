@@ -272,12 +272,28 @@ class Evaluator(object):
             elapsed_time = time.time() - start_time
 
             for _ in range(num_repetitions):
-
+                '''
+                print("__________________________________")
+                print(_, "Repitition Number")
+                if (_ == 0):
+                    seed = 42
+                    print("Durchgang und Seed", _ , seed)
+                elif (_ == 1):
+                    seed = 50
+                    print("Durchgang und Seed", _ , seed)
+                elif (_ == 2):
+                    seed = 56
+                    print("Durchgang und Seed", _ , seed)
+                else (_ == 3):
+                    seed =64
+                    print("Durchgang und Seed", _ , seed)
+                '''
                 train_data_corrupted, test_data_corrupted = self._discard_values(
                     task=self._task,
                     to_discard_columns=self._discard_in_columns,
                     missing_fraction=self._missing_fraction,
                     missing_type=self._missing_type,
+                    #seed = seed
                 )
 
                 # Fix that sometimes there are no missing values in the target column -> raises exception later on
@@ -322,11 +338,12 @@ class Evaluator(object):
         to_discard_columns: List[str],
         missing_fraction: float,
         missing_type: str,
+        #seed: int,
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
 
         columns = to_discard_columns
         fraction = missing_fraction / len(columns)
-
+        #print(missing_type,"Missingness Pattern in evaluation_discard_values")
         missing_values = []
         for column in columns:
             missing_values.append(MissingValues(column=column, fraction=fraction, missingness=missing_type))
@@ -338,6 +355,8 @@ class Evaluator(object):
         for missing_value in missing_values:
             train_data = missing_value.transform(train_data)
             test_data = missing_value.transform(test_data)
+            #train_data = missing_value.transform(train_data, seed)
+            #test_data = missing_value.transform(test_data, seed)
 
         return (train_data, test_data)
 
@@ -400,7 +419,7 @@ class SingleColumnEvaluator(Evaluator):
         path: Optional[Path] = None,
         seed: Optional[int] = 42
     ):
-
+        #logger.info(f"seed in experiment script")
         super().__init__(
             task=task,
             missing_fraction=missing_fraction,

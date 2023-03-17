@@ -24,6 +24,7 @@ class OpenMLTask(Task):
             seed (Optional[int], optional): Seed for determinism. Defaults to None.
         """
         #seed=42
+        print(seed, "seed for training-test-split")
         X, y = fetch_openml(data_id=openml_id, as_frame=True, return_X_y=True, cache=False)
         train_data, test_data, train_labels, test_labels = train_test_split(X, y, train_size=train_size)
 

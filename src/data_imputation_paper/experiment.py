@@ -89,6 +89,8 @@ class Experiment(object):
             self._imputer_arguments.pop("seed", None)
 
     def run(self, target_column):
+        print("print")
+        logger.info(f"______logger________")
         for task_id, task_class in self._task_id_class_tuples:
             self._result[task_id] = {}
 
@@ -115,8 +117,11 @@ class Experiment(object):
                                 path=experiment_path,
                                 #seed=42
                                 seed=None
+                                #logger.info(f"seed in experiment script")
                             )
                             evaluator.evaluate(self._num_repetitions)
+                            logger.info(f"____________________________")
+                            print("_______________________________")
                             result = evaluator._result
 
                         except Exception:
@@ -138,8 +143,8 @@ class Experiment(object):
                 }
             )
         )
-
-        logger.info(f"Experiment Finished! - Results are at: {self._base_path.parent}")
+        logging.info(f"______info________")
+        logger.info(f"Experiment test Finished! - Results are at: {self._base_path.parent}")
 
 
 def _recursive_split(path):
