@@ -275,7 +275,7 @@ class Evaluator(object):
                 elif (_ == 2):
                     seed = 56
                     print("Durchgang und Seed", _ , seed)
-                
+
                 train_data_corrupted, test_data_corrupted = self._discard_values(
                     task=self._task,
                     to_discard_columns=self._discard_in_columns,
@@ -286,17 +286,20 @@ class Evaluator(object):
                 test_data_corrupted.to_csv("corrupted_test_data_corrupted_after_discard_values.csv")
                 # Fix that sometimes there are no missing values in the target column -> raises exception later on
                 if not train_data_corrupted[target_column].isna().any():
+                    #print("we are going through train_data_corrupted check")
                     train_data_corrupted.loc[random.choice(train_data_corrupted.index), target_column] = nan
 
                 if not test_data_corrupted[target_column].isna().any():
+                    #print("we are going through test_data_corrupted check")
                     test_data_corrupted.loc[random.choice(test_data_corrupted.index), target_column] = nan
-
+                test_data_corrupted.to_csv("corrupted_test_data_corrupted_between.csv")
                 if result_temp._baseline_performance is None:
                     # fit task's baseline model and get performance
                     base_model = self._task.fit_baseline_model(train_data_corrupted.copy(), self._task.train_labels)
                     self._task._baseline_model = base_model
                     test_data_corrupted.to_csv("test_data_corrupted_for corrupted_experiment.csv")
                     predictions = self._task._baseline_model.predict(test_data_corrupted)
+                    #print(predictions)
                     result_temp._baseline_performance = self._task.score_on_test_data(predictions)
 
                 imputer = self._imputer_class(**self._imputer_arguments)

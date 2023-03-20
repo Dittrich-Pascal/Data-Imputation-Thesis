@@ -329,7 +329,9 @@ class BinaryClassificationTask(Task):
         """
 
         super().get_baseline_performance()
-
+        print("get_baseline_performance")
+        print(self.test_data)
+       
         predictions = self._baseline_model.predict(self.test_data)
         return self.score_on_test_data(predictions)
 
@@ -343,7 +345,10 @@ class BinaryClassificationTask(Task):
         Returns:
             float: ROC/AUC score of given `predictions`
         """
-
+        print("score on test data function")
+        print(self.test_labels)
+        csv_test_data = self.test_labels
+        csv_test_data.to_csv("test_data_for_corrupted_baseline.csv")
         return f1_score(self.test_labels, predictions, average="micro"), f1_score(self.test_labels, predictions, average="macro"), f1_score(self.test_labels, predictions, average="weighted")
 
 

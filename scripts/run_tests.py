@@ -2,24 +2,26 @@ import os
 from pathlib import Path
 import json
 
+'''
+
 binary_task_id_mappings = json.loads(Path("../data/raw/binary.txt").read_text())
 BINARY_TASK_IDS = [int(x) for x in binary_task_id_mappings.keys()]
 
 #methods = ["mode", "knn", "forest", "dl", "gain", "vae"]
 
-#methods = ["mode"]
-methods = ["forest"]
+methods = ["mode"]
+#methods = ["forest"]
 #methods = ["knn"]
 
 
 for i in BINARY_TASK_IDS:
     for j in methods:
         os.system(f"python run-experiment.py {i} {j} corrupted_binary_experiment_reproduce_MAR --missing-fractions 0.5 --missing-types MAR --strategies single_single --num-repetitions 3 --base-path ../results")
+'''
 
 
 
-
-#os.system(f"python run-experiment.py 737 mode experiment_test --missing-fractions 0.5 --missing-types MAR --strategies single_single,single_all --num-repetitions 3 --base-path ../results")
+os.system(f"python run-experiment.py 737 mode corrupted_experiment_test --missing-fractions 0.5 --missing-types MAR --strategies single_single --num-repetitions 3 --base-path ../results")
 #os.system(f"python run-experiment.py 737 mode experiment_test --missing-fractions 0.01,0.1,0.3,0.5 --missing-types MAR --strategies single_single,single_all --num-repetitions 3 --base-path ../results")
 #os.system(f"python run-experiment.py 737 knn experiment_test --missing-fractions 0.01,0.1,0.3,0.5 --missing-types MAR --strategies single_single,single_all --num-repetitions 3 --base-path ../results")
 #os.system(f"python run-experiment.py 737 forest experiment_test --missing-fractions 0.01,0.1,0.3,0.5 --missing-types MAR --strategies single_single,single_all --num-repetitions 3 --base-path ../results")
