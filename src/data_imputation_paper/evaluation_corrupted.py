@@ -261,14 +261,29 @@ class Evaluator(object):
             result_temp = EvaluationResult(self._task, target_column)
 
             for _ in range(num_repetitions):
-
+                #print(_, "Repitition Number via print")
+                
+                
+                #print("__________________________________")
+                #print(_, "Repitition Number")
+                if (_ == 0):
+                    seed = 42
+                    print("Durchgang und Seed", _ , seed)
+                elif (_ == 1):
+                    seed = 50
+                    print("Durchgang und Seed", _ , seed)
+                elif (_ == 2):
+                    seed = 56
+                    print("Durchgang und Seed", _ , seed)
+                
                 train_data_corrupted, test_data_corrupted = self._discard_values(
                     task=self._task,
                     to_discard_columns=self._discard_in_columns,
                     missing_fraction=self._missing_fraction,
                     missing_type=self._missing_type,
+                    seed = seed
                 )
-
+                test_data_corrupted.to_csv("corrupted_test_data_corrupted_after_discard_values.csv")
                 # Fix that sometimes there are no missing values in the target column -> raises exception later on
                 if not train_data_corrupted[target_column].isna().any():
                     train_data_corrupted.loc[random.choice(train_data_corrupted.index), target_column] = nan
@@ -280,7 +295,7 @@ class Evaluator(object):
                     # fit task's baseline model and get performance
                     base_model = self._task.fit_baseline_model(train_data_corrupted.copy(), self._task.train_labels)
                     self._task._baseline_model = base_model
-
+                    test_data_corrupted.to_csv("test_data_corrupted_for corrupted_experiment.csv")
                     predictions = self._task._baseline_model.predict(test_data_corrupted)
                     result_temp._baseline_performance = self._task.score_on_test_data(predictions)
 
@@ -325,6 +340,7 @@ class Evaluator(object):
         to_discard_columns: List[str],
         missing_fraction: float,
         missing_type: str,
+        seed: int,
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
 
         columns = to_discard_columns
@@ -339,8 +355,8 @@ class Evaluator(object):
         test_data = task.test_data.copy()
 
         for missing_value in missing_values:
-            train_data = missing_value.transform(train_data)
-            test_data = missing_value.transform(test_data)
+            train_data = missing_value.transform(train_data, seed)
+            test_data = missing_value.transform(test_data, seed)
 
         return (train_data, test_data)
 

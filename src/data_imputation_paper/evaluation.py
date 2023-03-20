@@ -2,6 +2,7 @@ import json
 import math
 import random
 import time
+import logging
 from pathlib import Path
 from statistics import mean, stdev
 from typing import Callable, Dict, List, Optional, Tuple
@@ -67,8 +68,11 @@ class EvaluationResult(object):
             test_imputed=test_data_imputed.loc[test_imputed_mask, target_column],
             imputation_type=self._imputation_task_type
         )
-
+        test_data_corrupted.to_csv("test_data_corrupted_before_predict.csv")
         predictions_on_corrupted = self._task._baseline_model.predict(test_data_corrupted)
+        #pd.Dataframe(predictions_on_corrupted).to_csv("predictions_on_corrupted.csv")
+        #np.savetxt('predictions_on_corrupted.txt', predictions_on_corrupted, delimiter=',') 
+        print(predictions_on_corrupted)
         score_on_corrupted = self._task.score_on_test_data(predictions_on_corrupted)
 
         predictions_on_imputed = self._task._baseline_model.predict(test_data_imputed)
@@ -272,9 +276,11 @@ class Evaluator(object):
             elapsed_time = time.time() - start_time
 
             for _ in range(num_repetitions):
-                '''
-                print("__________________________________")
-                print(_, "Repitition Number")
+                #print(_, "Repitition Number via print")
+                
+                
+                #print("__________________________________")
+                #print(_, "Repitition Number")
                 if (_ == 0):
                     seed = 42
                     print("Durchgang und Seed", _ , seed)
@@ -284,18 +290,16 @@ class Evaluator(object):
                 elif (_ == 2):
                     seed = 56
                     print("Durchgang und Seed", _ , seed)
-                else (_ == 3):
-                    seed =64
-                    print("Durchgang und Seed", _ , seed)
-                '''
+
+                
                 train_data_corrupted, test_data_corrupted = self._discard_values(
                     task=self._task,
                     to_discard_columns=self._discard_in_columns,
                     missing_fraction=self._missing_fraction,
                     missing_type=self._missing_type,
-                    #seed = seed
+                    seed = seed
                 )
-
+                test_data_corrupted.to_csv("test_data_corrupted_before_append.csv")
                 # Fix that sometimes there are no missing values in the target column -> raises exception later on
                 if not train_data_corrupted[target_column].isna().any():
                     train_data_corrupted.loc[random.choice(train_data_corrupted.index), target_column] = nan
@@ -305,7 +309,7 @@ class Evaluator(object):
 
                 train_imputed, train_imputed_mask = imputer.transform(train_data_corrupted)
                 test_imputed, test_imputed_mask = imputer.transform(test_data_corrupted)
-
+                
                 # NOTE: masks are DataFrames => append expects Series
                 result_temp.append(
                     target_column=target_column,
@@ -338,12 +342,13 @@ class Evaluator(object):
         to_discard_columns: List[str],
         missing_fraction: float,
         missing_type: str,
-        #seed: int,
+        seed: int,
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
 
         columns = to_discard_columns
         fraction = missing_fraction / len(columns)
-        #print(missing_type,"Missingness Pattern in evaluation_discard_values")
+        print(missing_type,"Missingness Pattern in evaluation_discard_values")
+        #print(seed, "Seed in discard_values")
         missing_values = []
         for column in columns:
             missing_values.append(MissingValues(column=column, fraction=fraction, missingness=missing_type))
@@ -353,10 +358,10 @@ class Evaluator(object):
         test_data = task.test_data.copy()
 
         for missing_value in missing_values:
-            train_data = missing_value.transform(train_data)
-            test_data = missing_value.transform(test_data)
-            #train_data = missing_value.transform(train_data, seed)
-            #test_data = missing_value.transform(test_data, seed)
+            #train_data = missing_value.transform(train_data)
+            #test_data = missing_value.transform(test_data)
+            train_data = missing_value.transform(train_data, seed)
+            test_data = missing_value.transform(test_data, seed)
 
         return (train_data, test_data)
 
