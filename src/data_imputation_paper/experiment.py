@@ -113,13 +113,11 @@ class Experiment(object):
                                 imputer_class=self._imputer_class,
                                 imputer_args=self._imputer_arguments,
                                 path=experiment_path,
-                                #seed=42
+                                #seed=42 #PD
                                 seed=None
-                                #logger.info(f"seed in experiment script")
                             )
                             evaluator.evaluate(self._num_repetitions)
-                            #logger.info(f"____________________________")
-                            print("_______________________________")
+                            print("_______________________________")#PD
                             result = evaluator._result
 
                         except Exception:

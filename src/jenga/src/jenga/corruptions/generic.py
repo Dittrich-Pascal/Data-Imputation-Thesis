@@ -22,13 +22,13 @@ class MissingValues(TabularCorruption):
         self.na_value = na_value
 
     #def transform(self, data):
-    def transform(self, data, seed):    
+    def transform(self, data, seed):    #PD
         corrupted_data = data.copy(deep=True)
         # calls method from basis.py which uses numpy for random drop of data
         # try to give the methods here the fixed random seat per repetition
         
         #print(seed, "Seed in MissingValues_transform")
-        rows = self.sample_rows(corrupted_data, seed)
+        rows = self.sample_rows(corrupted_data, seed)#PD
         #rows = self.sample_rows(corrupted_data)
         #print(seed, "random seed for data corruptions in jenga/generic")
         corrupted_data.loc[rows, [self.column]] = self.na_value

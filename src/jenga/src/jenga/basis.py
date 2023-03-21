@@ -104,6 +104,7 @@ class Task(ABC):
         return task_type
 
     def fit_baseline_model(self, train_data: Optional[pd.DataFrame] = None, train_labels: Optional[pd.Series] = None) -> BaseEstimator:
+    #def fit_baseline_model(train_data, train_labels) -> BaseEstimator:
         """
         Fit a baseline model. If no data is given (default), it uses the task's train data and creates the attribute `_baseline_model`. \
             If data is given, it trains this data.
@@ -118,7 +119,7 @@ class Task(ABC):
         Returns:
             BaseEstimator: Trained model
         """
-
+        print(train_data, "train_data in fit_baseline_model_guggug")
         if (train_data is None and train_labels is not None) or (train_data is not None and train_labels is None):
             raise ValueError("either set both parameters (train_data, train_labels) or non")
 
@@ -126,43 +127,73 @@ class Task(ABC):
 
         # shortcut if model is already trained
         if use_original_data and self._baseline_model:
+            print("guggug____________model already trained")
             return self._baseline_model
-
+        
         if use_original_data:
             train_data = self.train_data.copy()
             train_labels = self.train_labels.copy()
-
+        
         for col in self.categorical_columns:
             train_data[col] = train_data[col].astype(str)
-        #print("We are in basis.py")
+        #print("We are in basis.py")#PD
+        
         categorical_preprocessing = Pipeline(
             [
-                ('mark_missing', SimpleImputer(strategy='most_frequent')),# If there is more than one such value, only the smallest is returned.
+                #('mark_missing', SimpleImputer(strategy='most_frequent')),# If there is more than one such value, only the smallest is returned.
                 ('one_hot_encode', OneHotEncoder(handle_unknown='ignore'))
             ]
         )
 
         numerical_preprocessing = Pipeline(
             [
-                ('mark_missing', SimpleImputer(strategy='mean')),
+                #('mark_missing', SimpleImputer(strategy='mean')),
                 ('scaling',  StandardScaler())
             ]
         )
-
         feature_transformation = ColumnTransformer(transformers=[
                 ('categorical_features', categorical_preprocessing, self.categorical_columns),
                 ('scaled_numeric', numerical_preprocessing, self.numerical_columns)
             ]
+        ) 
+        '''       
+        feature_transformation = ColumnTransformer(transformers=[
+                ('categorical_features', self.categorical_columns),
+                ('scaled_numeric', self.numerical_columns)
+            ]
         )
+        
+        param_grid = {
+            'learner__loss': ['log'],
+            'learner__penalty': ['l2'],
+            'learner__alpha': [0.00001, 0.0001, 0.001, 0.01]
+        }
+        rng = np.random.RandomState(5) #PD 
+        print(rng, "random seed for SGD Classifier") #PD
+        pipeline = Pipeline(
+            [
+                #('features', feature_transformation),
+                ('learner', SGDClassifier(max_iter=1000, n_jobs=-1, random_state=rng))#PD
+            ]
+        )
+
+        scorer = {
+            "F1": make_scorer(f1_score, average="macro")
+        }
+        '''
 
         param_grid, pipeline, scorer = self._get_pipeline_grid_scorer_tuple(feature_transformation)
         refit = list(scorer.keys())[0]
 
         search = GridSearchCV(pipeline, param_grid, scoring=scorer, n_jobs=-1, refit=refit)
+        #search = GridSearchCV(pipeline, param_grid, scoring=scorer, n_jobs=-1, refit=refit)
+
+        train_data.to_csv("train_data_imputed_for_model_fit.csv")
         model = search.fit(train_data, train_labels).best_estimator_
 
         # only set baseline model attribute if it is trained on the original task data
         if use_original_data:
+            print("only set baseline model attribute if it is trained on the original task data")
             self._baseline_model = model
 
         return model
@@ -305,12 +336,12 @@ class BinaryClassificationTask(Task):
             'learner__penalty': ['l2'],
             'learner__alpha': [0.00001, 0.0001, 0.001, 0.01]
         }
-        rng = np.random.RandomState(5) 
-        print(rng, "random seed for SGD Classifier")
+        rng = np.random.RandomState(5) #PD 
+        print(rng, "random seed for SGD Classifier") #PD
         pipeline = Pipeline(
             [
                 ('features', feature_transformation),
-                ('learner', SGDClassifier(max_iter=1000, n_jobs=-1, random_state=rng))
+                ('learner', SGDClassifier(max_iter=1000, n_jobs=-1, random_state=rng))#PD
             ]
         )
 
@@ -329,13 +360,14 @@ class BinaryClassificationTask(Task):
         """
 
         super().get_baseline_performance()
-        print("get_baseline_performance")
+        print("get_baseline_performance")#PD
         print(self.test_data)
        
         predictions = self._baseline_model.predict(self.test_data)
         return self.score_on_test_data(predictions)
 
     def score_on_test_data(self, predictions: pd.array) -> float:
+    #def score_on_test_data(predictions: pd.array, test_labels) -> float:
         """
         By default calculate the ROC/AUC score of the given `predictions` against test data.
 
@@ -345,10 +377,11 @@ class BinaryClassificationTask(Task):
         Returns:
             float: ROC/AUC score of given `predictions`
         """
-        print("score on test data function")
+        print("score on test data function____________g_____________")
         print(self.test_labels)
-        csv_test_data = self.test_labels
-        csv_test_data.to_csv("test_data_for_corrupted_baseline.csv")
+        #csv_test_data = test_labels
+        #csv_test_data.to_csv("test_data_for_corrupted_baseline.csv")
+        #return f1_score(test_labels, predictions, average="micro"), f1_score(test_labels, predictions, average="macro"), f1_score(test_labels, predictions, average="weighted")
         return f1_score(self.test_labels, predictions, average="micro"), f1_score(self.test_labels, predictions, average="macro"), f1_score(self.test_labels, predictions, average="weighted")
 
 
