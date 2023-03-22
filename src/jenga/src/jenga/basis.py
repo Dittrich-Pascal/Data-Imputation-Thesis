@@ -377,8 +377,8 @@ class BinaryClassificationTask(Task):
         Returns:
             float: ROC/AUC score of given `predictions`
         """
-        print("score on test data function____________g_____________")
-        print(self.test_labels)
+        #print("score on test data function____________g_____________")
+        #print(self.test_labels)
         #csv_test_data = test_labels
         #csv_test_data.to_csv("test_data_for_corrupted_baseline.csv")
         #return f1_score(test_labels, predictions, average="micro"), f1_score(test_labels, predictions, average="macro"), f1_score(test_labels, predictions, average="weighted")
@@ -463,11 +463,12 @@ class MultiClassClassificationTask(Task):
             'learner__penalty': ['l2'],
             'learner__alpha': [0.00001, 0.0001, 0.001, 0.01]
         }
-
+        rng = np.random.RandomState(5) #PD 
+        print(rng, "random seed for SGD Classifier") #PD
         pipeline = Pipeline(
             [
                 ('features', feature_transformation),
-                ('learner', SGDClassifier(max_iter=1000, n_jobs=-1))
+                ('learner', SGDClassifier(max_iter=1000, n_jobs=-1, random_state=rng))#PD
             ]
         )
 
@@ -587,11 +588,12 @@ class RegressionTask(Task):
             'learner__penalty': ['l2'],
             'learner__alpha': [0.00001, 0.0001, 0.001, 0.01]
         }
-
+        rng = np.random.RandomState(5) #PD 
+        print(rng, "random seed for SGD #regressor") #PD
         pipeline = Pipeline(
             [
                 ('features', feature_transformation),
-                ('learner', SGDRegressor(max_iter=1000))
+                ('learner', SGDRegressor(max_iter=1000, random_state=rng))
             ]
         )
 
@@ -660,24 +662,24 @@ class TabularCorruption(DataCorruption):
         non_numeric_cols = [c for c in df.columns if c not in numeric_cols]
         return numeric_cols, non_numeric_cols
 
-    #def sample_rows(self, data):
-    def sample_rows(self, data, seed):
-        print(seed, "seed in sample_rows START")
+    def sample_rows(self, data):
+    #def sample_rows(self, data, seed):
+        #print(seed, "seed in sample_rows START")
         # Completely At Random
         if self.sampling.endswith('CAR'):
-            np.random.seed(seed)#
+        #    np.random.seed(seed)#
             #print(seed, "seed in sample_rows for Permutation")
             rows = np.random.permutation(data.index)[:int(len(data)*self.fraction)]
         elif self.sampling.endswith('NAR') or self.sampling.endswith('AR'):
             n_values_to_discard = int(len(data) * min(self.fraction, 1.0))
-            np.random.seed(seed)#
-            #print(seed, "seed in sample_rows for randint")
+        #    np.random.seed(seed)#
+        #    print(seed, "seed in sample_rows for randint")
             perc_lower_start = np.random.randint(0, len(data) - n_values_to_discard)
             perc_idx = range(perc_lower_start, perc_lower_start + n_values_to_discard)
 
             # Not At Random
             if self.sampling.endswith('NAR'):
-                np.random.seed(seed)#
+        #        np.random.seed(seed)#
                 # pick a random percentile of values in this column
                 rows = data[self.column].sort_values().iloc[perc_idx].index
 
@@ -692,14 +694,14 @@ class TabularCorruption(DataCorruption):
                 list_for_columns = list(columns_temp_ar.columns)
                 
                 #print(list_for_columns)
-                np.random.RandomState(seed)#
-                print(seed, "seed for AR 1.1")
+        #        np.random.RandomState(seed)#
+        #        print(seed, "seed for AR 1.1")
                 depends_on_col = np.random.choice(list_for_columns)
                 #depends_on_col = np.random.choice(list(set(data.columns) - {self.column}))
                 print(depends_on_col)
                 #print(seed, "seed for AR 1.2")
                 # pick a random percentile of values in other column
-                np.random.seed(seed)#
+        #        np.random.seed(seed)#
                 #print(seed, "seed for AR 2")
                 rows = data[depends_on_col].sort_values().iloc[perc_idx].index
                 print(rows)

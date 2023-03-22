@@ -113,8 +113,8 @@ class Experiment(object):
                                 imputer_class=self._imputer_class,
                                 imputer_args=self._imputer_arguments,
                                 path=experiment_path,
-                                #seed=42 #PD
-                                seed=None
+                                seed=42 #PD
+                                #seed=None
                             )
                             evaluator.evaluate(self._num_repetitions)
                             print("_______________________________")#PD

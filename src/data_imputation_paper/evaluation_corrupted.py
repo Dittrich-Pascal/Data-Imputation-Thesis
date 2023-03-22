@@ -261,24 +261,24 @@ class Evaluator(object):
         for target_column in self._target_columns:
 
             result_temp = EvaluationResult(self._task, target_column)
-
+            
             for _ in range(num_repetitions):
                 if (_ == 0):#PD
-                    seed = 42#PD
-                    print("Durchgang und Seed", _ , seed)#PD
+                    #seed = 42#PD
+                    print("Durchgang und Seed", _ )#, seed)#PD
                 elif (_ == 1):#PD
-                    seed = 50#PD
-                    print("Durchgang und Seed", _ , seed)#PD
+                    #seed = 50#PD
+                    print("Durchgang und Seed", _ )#, seed)#PD
                 elif (_ == 2):#PD
-                    seed = 56#PD
-                    print("Durchgang und Seed", _ , seed)#PD
+                    #seed = 56#PD
+                    print("Durchgang und Seed", _ )#, seed)#PD
                 
                 train_data_corrupted, test_data_corrupted = self._discard_values(
                     task=self._task,
                     to_discard_columns=self._discard_in_columns,
                     missing_fraction=self._missing_fraction,
                     missing_type=self._missing_type,
-                    seed = seed#PD
+                    #seed = seed#PD
                 )
                 #test_data_corrupted.to_csv("corrupted_test_data_corrupted_after_discard_values.csv")#PD
                 # Fix that sometimes there are no missing values in the target column -> raises exception later on
@@ -363,7 +363,7 @@ class Evaluator(object):
         to_discard_columns: List[str],
         missing_fraction: float,
         missing_type: str,
-        seed: int,#PD
+        #seed: int,#PD
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
 
         columns = to_discard_columns
@@ -378,9 +378,10 @@ class Evaluator(object):
         test_data = task.test_data.copy()
         train_data.to_csv("original_dataset.csv")
         for missing_value in missing_values:
-            train_data = missing_value.transform(train_data, seed)#PD
-            test_data = missing_value.transform(test_data, seed)#PD
-
+            train_data = missing_value.transform(train_data)#PD
+            test_data = missing_value.transform(test_data)#PD
+            #train_data = missing_value.transform(train_data, seed)#PD
+            #test_data = missing_value.transform(test_data, seed)#PD
         return (train_data, test_data)
 
     def _save_results(self):
