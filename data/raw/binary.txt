@@ -1,1 +1,1 @@
-{"737": "INCOME", "871": "RIDGE", "40983": "Mean_G", "728": "Lower_court_disagreement", "1489": "V1", "310": "attr2", "1046": "end", "823": "total_rooms", "42493": "Length", "137": "top-middle-square", "901": "X2", "23517": "attribute_10"}
+{"1489": "V1", "1471": "V9", "40922": "gyro_y"}
