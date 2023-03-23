@@ -17,7 +17,7 @@ class CorruptionImpactEvaluator(Evaluator):
 
         baseline_predictions = self._model_predict(model, test_data_copy)
         baseline_score = self._task.score_on_test_data(baseline_predictions)
-
+        print("We are in corruption_impact.py def evaluate")
         results = []
 
         num_results = len(corruptions) * num_repetitions

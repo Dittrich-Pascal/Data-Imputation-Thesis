@@ -23,10 +23,14 @@ class OpenMLTask(Task):
             train_size (float, optional): Defines the data split. Defaults to 0.8.
             seed (Optional[int], optional): Seed for determinism. Defaults to None.
         """
-        #seed=42
+        seed=32
+        print("______________________________")
+        print(seed, "seed for training-test-split")
+        print(openml_id, "Datensatz Nummer")
+        print("______________________________")
         X, y = fetch_openml(data_id=openml_id, as_frame=True, return_X_y=True, cache=False)
         train_data, test_data, train_labels, test_labels = train_test_split(X, y, train_size=train_size)
-
+        test_data.to_csv("corrupted_original_test_data_after_pull.csv")
         categorical_columns = [
             column for column in X.columns
             if pd.api.types.is_categorical_dtype(X[column])

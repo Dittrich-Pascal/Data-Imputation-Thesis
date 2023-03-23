@@ -134,17 +134,17 @@ class Task(ABC):
 
         for col in self.categorical_columns:
             train_data[col] = train_data[col].astype(str)
-
+        #print("We are in basis.py")
         categorical_preprocessing = Pipeline(
             [
-                ('mark_missing', SimpleImputer(strategy='constant', fill_value='__NA__')),
+                ('mark_missing', SimpleImputer(strategy='most_frequent')),# If there is more than one such value, only the smallest is returned.
                 ('one_hot_encode', OneHotEncoder(handle_unknown='ignore'))
             ]
         )
 
         numerical_preprocessing = Pipeline(
             [
-                ('mark_missing', SimpleImputer(strategy='constant', fill_value=0)),
+                ('mark_missing', SimpleImputer(strategy='mean')),
                 ('scaling',  StandardScaler())
             ]
         )
@@ -305,11 +305,12 @@ class BinaryClassificationTask(Task):
             'learner__penalty': ['l2'],
             'learner__alpha': [0.00001, 0.0001, 0.001, 0.01]
         }
-
+        rng = np.random.RandomState(5) 
+        print(rng, "random seed for SGD Classifier")
         pipeline = Pipeline(
             [
                 ('features', feature_transformation),
-                ('learner', SGDClassifier(max_iter=1000, n_jobs=-1))
+                ('learner', SGDClassifier(max_iter=1000, n_jobs=-1, random_state=rng))
             ]
         )
 
@@ -328,7 +329,9 @@ class BinaryClassificationTask(Task):
         """
 
         super().get_baseline_performance()
-
+        print("get_baseline_performance")
+        print(self.test_data)
+       
         predictions = self._baseline_model.predict(self.test_data)
         return self.score_on_test_data(predictions)
 
@@ -342,7 +345,10 @@ class BinaryClassificationTask(Task):
         Returns:
             float: ROC/AUC score of given `predictions`
         """
-
+        print("score on test data function")
+        print(self.test_labels)
+        csv_test_data = self.test_labels
+        csv_test_data.to_csv("test_data_for_corrupted_baseline.csv")
         return f1_score(self.test_labels, predictions, average="micro"), f1_score(self.test_labels, predictions, average="macro"), f1_score(self.test_labels, predictions, average="weighted")
 
 
@@ -621,27 +627,51 @@ class TabularCorruption(DataCorruption):
         non_numeric_cols = [c for c in df.columns if c not in numeric_cols]
         return numeric_cols, non_numeric_cols
 
-    def sample_rows(self, data):
-
+    #def sample_rows(self, data):
+    def sample_rows(self, data, seed):
+        print(seed, "seed in sample_rows START")
         # Completely At Random
         if self.sampling.endswith('CAR'):
+            np.random.seed(seed)#
+            #print(seed, "seed in sample_rows for Permutation")
             rows = np.random.permutation(data.index)[:int(len(data)*self.fraction)]
         elif self.sampling.endswith('NAR') or self.sampling.endswith('AR'):
             n_values_to_discard = int(len(data) * min(self.fraction, 1.0))
+            np.random.seed(seed)#
+            #print(seed, "seed in sample_rows for randint")
             perc_lower_start = np.random.randint(0, len(data) - n_values_to_discard)
             perc_idx = range(perc_lower_start, perc_lower_start + n_values_to_discard)
 
             # Not At Random
             if self.sampling.endswith('NAR'):
+                np.random.seed(seed)#
                 # pick a random percentile of values in this column
                 rows = data[self.column].sort_values().iloc[perc_idx].index
 
             # At Random
             elif self.sampling.endswith('AR'):
-                depends_on_col = np.random.choice(list(set(data.columns) - {self.column}))
+                
+                columns_temp_ar = data.loc[:, data.columns != self.column]
+                #print(data, "Data Columns")
+                #print(self.column, "column which is dropped")
+                #print(columns_temp_ar)
+                #list_for_columns = list(set(data.columns) - {self.column})
+                list_for_columns = list(columns_temp_ar.columns)
+                
+                #print(list_for_columns)
+                np.random.RandomState(seed)#
+                print(seed, "seed for AR 1.1")
+                depends_on_col = np.random.choice(list_for_columns)
+                #depends_on_col = np.random.choice(list(set(data.columns) - {self.column}))
+                print(depends_on_col)
+                #print(seed, "seed for AR 1.2")
                 # pick a random percentile of values in other column
+                np.random.seed(seed)#
+                #print(seed, "seed for AR 2")
                 rows = data[depends_on_col].sort_values().iloc[perc_idx].index
-
+                print(rows)
+                #print(seed, "seed for AR 2.2")
+                print("_____________________")
         else:
             ValueError(f"sampling type '{self.sampling}' not recognized")
 

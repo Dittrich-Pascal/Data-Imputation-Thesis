@@ -15,14 +15,22 @@ class MissingValues(TabularCorruption):
         na_value:   value
         missingness:   sampling mechanism for corruptions, string in ['MCAR', 'MAR', 'MNAR']
         '''
+        #print(missingness,"Missingness Pattern in generic")
         self.column = column
         self.fraction = fraction
         self.sampling = missingness
         self.na_value = na_value
 
-    def transform(self, data):
+    #def transform(self, data):
+    def transform(self, data, seed):    
         corrupted_data = data.copy(deep=True)
-        rows = self.sample_rows(corrupted_data)
+        # calls method from basis.py which uses numpy for random drop of data
+        # try to give the methods here the fixed random seat per repetition
+        
+        #print(seed, "Seed in MissingValues_transform")
+        rows = self.sample_rows(corrupted_data, seed)
+        #rows = self.sample_rows(corrupted_data)
+        #print(seed, "random seed for data corruptions in jenga/generic")
         corrupted_data.loc[rows, [self.column]] = self.na_value
         return corrupted_data
 

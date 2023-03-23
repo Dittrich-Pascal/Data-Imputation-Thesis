@@ -14,7 +14,7 @@ from jenga.tasks.openml import OpenMLTask
 
 from .imputation._base import BaseImputer
 from .imputation.utils import set_seed
-
+#test
 logger = logging.getLogger()
 
 
@@ -115,8 +115,11 @@ class Experiment(object):
                                 path=experiment_path,
                                 #seed=42
                                 seed=None
+                                #logger.info(f"seed in experiment script")
                             )
                             evaluator.evaluate(self._num_repetitions)
+                            #logger.info(f"____________________________")
+                            print("_______________________________")
                             result = evaluator._result
 
                         except Exception:
@@ -138,7 +141,7 @@ class Experiment(object):
                 }
             )
         )
-
+        #print("print test")
         logger.info(f"Experiment Finished! - Results are at: {self._base_path.parent}")
 
 
