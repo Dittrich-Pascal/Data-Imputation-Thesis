@@ -140,14 +140,14 @@ class Task(ABC):
         
         categorical_preprocessing = Pipeline(
             [
-                #('mark_missing', SimpleImputer(strategy='most_frequent')),# If there is more than one such value, only the smallest is returned.
+                ('mark_missing', SimpleImputer(strategy='most_frequent')),# If there is more than one such value, only the smallest is returned.
                 ('one_hot_encode', OneHotEncoder(handle_unknown='ignore'))
             ]
         )
 
         numerical_preprocessing = Pipeline(
             [
-                #('mark_missing', SimpleImputer(strategy='mean')),
+                ('mark_missing', SimpleImputer(strategy='mean')),
                 ('scaling',  StandardScaler())
             ]
         )
@@ -685,24 +685,15 @@ class TabularCorruption(DataCorruption):
 
             # At Random
             elif self.sampling.endswith('AR'):
-                
                 columns_temp_ar = data.loc[:, data.columns != self.column]
-                #print(data, "Data Columns")
-                #print(self.column, "column which is dropped")
-                #print(columns_temp_ar)
-                #list_for_columns = list(set(data.columns) - {self.column})
                 list_for_columns = list(columns_temp_ar.columns)
                 
-                #print(list_for_columns)
-        #        np.random.RandomState(seed)#
-        #        print(seed, "seed for AR 1.1")
                 depends_on_col = np.random.choice(list_for_columns)
+                
+                #list_for_columns = list(set(data.columns) - {self.column})
                 #depends_on_col = np.random.choice(list(set(data.columns) - {self.column}))
                 print(depends_on_col)
-                #print(seed, "seed for AR 1.2")
-                # pick a random percentile of values in other column
-        #        np.random.seed(seed)#
-                #print(seed, "seed for AR 2")
+
                 rows = data[depends_on_col].sort_values().iloc[perc_idx].index
                 print(rows)
                 #print(seed, "seed for AR 2.2")

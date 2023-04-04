@@ -1,4 +1,4 @@
-name: data-imputation-paper
+name: Data-Imputation-Thesis
 channels:
   - defaults
   - conda-forge
@@ -19,7 +19,7 @@ dependencies:
     - autokeras
     - flake8-mypy
     - pydocstyle
-    - tensorflow
+    - tensorflow #2.10 / tensorflow-text==2.10
     - openml
     - typer
 #    - rope
