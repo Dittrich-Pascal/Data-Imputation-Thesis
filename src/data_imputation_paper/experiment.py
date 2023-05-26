@@ -10,6 +10,8 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 import joblib
 import pandas as pd
+#from ..run_experiment import subset_exp
+
 from jenga.tasks.openml import OpenMLTask
 
 from .imputation._base import BaseImputer
@@ -32,8 +34,22 @@ class Experiment(object):
         base_path: str = "results",
         timestamp: Optional[str] = None,
         fully_observed: bool = True,
+#        subset_exp: bool = False,
         seed: int = 42
     ):
+ 
+ #       if subset_exp:
+ #           from jenga.tasks.openml import (
+ #               OpenMLTask
+ #           )
+ #           print("subset_exp -> if")
+ #       else:
+ #           from jenga.tasks.openml_subset import (
+ #               OpenMLTask
+ #           )
+ #           print("subset_exp -> else")
+
+
 
         if fully_observed:
             from .evaluation import (
@@ -113,7 +129,7 @@ class Experiment(object):
                                 imputer_class=self._imputer_class,
                                 imputer_args=self._imputer_arguments,
                                 path=experiment_path,
-                                seed=42 #PD
+                                seed=42, #PD
                                 #seed=None
                             )
                             evaluator.evaluate(self._num_repetitions)

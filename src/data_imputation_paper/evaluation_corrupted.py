@@ -9,7 +9,7 @@ from typing import Callable, Dict, List, Optional, Tuple
 import pandas as pd
 from jenga.basis import Task, BinaryClassificationTask #PD
 from jenga.corruptions.generic import MissingValues
-from jenga.tasks.openml import OpenMLTask
+from jenga.tasks.openml_subset import OpenMLTask
 from jenga.utils import BINARY_CLASSIFICATION, MULTI_CLASS_CLASSIFICATION, REGRESSION
 from numpy import nan
 from sklearn.metrics import f1_score, mean_absolute_error, mean_squared_error
@@ -107,6 +107,8 @@ class EvaluationResult(object):
 
         results_mean_list = []
         results_std_list = []
+        print(self)
+
         for all_list in [self.results, self.downstream_performances]:
             collected_results = pd.concat(all_list)
             metrics = collected_results.index.unique()
@@ -131,7 +133,13 @@ class EvaluationResult(object):
 
         self.result, self.downstream_performance = results_mean_list
         self.result_std, self.downstream_performance_std = results_std_list
-
+        print('AFTER------------------------------')
+        print(self.result)
+        print(type(self.result))
+        print("__________________-")
+        print(self.downstream_performance)
+        print(type(self.downstream_performance))
+        print('------------------------------')
         self.elapsed_train_time = mean(self.elapsed_train_times)
         self.elapsed_train_time_std = stdev(self.elapsed_train_times)
 
@@ -257,7 +265,7 @@ class Evaluator(object):
     def evaluate(self, num_repetitions: int):
         # hier den seed übergeben #PD
         result = {}
-
+#        subset_exp=subset_exp
         for target_column in self._target_columns:
 
             result_temp = EvaluationResult(self._task, target_column)
@@ -278,6 +286,7 @@ class Evaluator(object):
                     to_discard_columns=self._discard_in_columns,
                     missing_fraction=self._missing_fraction,
                     missing_type=self._missing_type,
+#                    subset_exp=subset_exp
                     #seed = seed#PD
                 )
                 #test_data_corrupted.to_csv("corrupted_test_data_corrupted_after_discard_values.csv")#PD
@@ -289,7 +298,7 @@ class Evaluator(object):
                 if not test_data_corrupted[target_column].isna().any():
                     #print("we are going through test_data_corrupted check")#PD
                     test_data_corrupted.loc[random.choice(test_data_corrupted.index), target_column] = nan
-                test_data_corrupted.to_csv("corrupted_test_data_corrupted_between.csv")#PD
+                #test_data_corrupted.to_csv("corrupted_test_data_corrupted_between.csv")#PD
                 
                 #train_data_corrupted.to_csv("train_data_corrupted.csv")
 
@@ -301,8 +310,8 @@ class Evaluator(object):
 
                 train_imputed, train_imputed_mask = imputer.transform(train_data_corrupted)
                 test_imputed, test_imputed_mask = imputer.transform(test_data_corrupted)
-                train_imputed.to_csv("train_data_imputed.csv")
-                test_imputed.to_csv("test_data_imputed.csv")
+                #train_imputed.to_csv("train_data_imputed.csv")
+                #test_imputed.to_csv("test_data_imputed.csv")
                 
                 
                 if result_temp._baseline_performance is None:
@@ -311,26 +320,16 @@ class Evaluator(object):
                     print(self._task.train_labels, "train_labels ______________")
                     print(self._task)
                     print("\n")
-                    base_model = self._task.fit_baseline_model(train_imputed.copy(), self._task.train_labels)
+                    base_model = self._task.fit_baseline_model(train_imputed.copy(), self._task.train_labels)#PD
                     #base_model = Task.fit_baseline_model(train_imputed.copy(), self._task.train_labels)
                     self._task._baseline_model = base_model
                     test_imputed.to_csv("test_data_imputed_for corrupted_experiment.csv")#PD
                     #predictions = base_model.predict(test_imputed)
-                    predictions = self._task._baseline_model.predict(test_imputed)
+                    predictions = self._task._baseline_model.predict(test_imputed)#PD
                     print(predictions)#PD
                     result_temp._baseline_performance = self._task.score_on_test_data(predictions)
                     #result_temp._baseline_performance = BinaryClassificationTask.score_on_test_data(predictions, self._task.test_labels)
-                '''
-                if result_temp._baseline_performance is None:
-                    # fit task's baseline model and get performance
-                    base_model = self._task.fit_baseline_model(train_data_corrupted.copy(), self._task.train_labels)
-                    self._task._baseline_model = base_model
-                    test_data_corrupted.to_csv("test_data_corrupted_for corrupted_experiment.csv")#PD
-                    predictions = self._task._baseline_model.predict(test_data_corrupted)
-                    #print(predictions)#PD
-                    result_temp._baseline_performance = self._task.score_on_test_data(predictions)
-                '''
- 
+#
                 # NOTE: masks are DataFrames => append expects Series
                 result_temp.append(
                     target_column=target_column,
@@ -359,10 +358,12 @@ class Evaluator(object):
 
     def _discard_values(
         self,
+ #       OpenMLTask(task, subset_exp),
         task: OpenMLTask,
         to_discard_columns: List[str],
         missing_fraction: float,
         missing_type: str,
+        #subset_exp: Bool,
         #seed: int,#PD
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
 
@@ -376,7 +377,7 @@ class Evaluator(object):
         # Apply all
         train_data = task.train_data.copy()
         test_data = task.test_data.copy()
-        train_data.to_csv("original_dataset.csv")
+        #train_data.to_csv("original_dataset.csv")
         for missing_value in missing_values:
             train_data = missing_value.transform(train_data)#PD
             test_data = missing_value.transform(test_data)#PD

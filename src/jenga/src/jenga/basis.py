@@ -119,7 +119,7 @@ class Task(ABC):
         Returns:
             BaseEstimator: Trained model
         """
-        print(train_data, "train_data in fit_baseline_model_guggug")
+
         if (train_data is None and train_labels is not None) or (train_data is not None and train_labels is None):
             raise ValueError("either set both parameters (train_data, train_labels) or non")
 
@@ -127,7 +127,7 @@ class Task(ABC):
 
         # shortcut if model is already trained
         if use_original_data and self._baseline_model:
-            print("guggug____________model already trained")
+
             return self._baseline_model
         
         if use_original_data:
@@ -140,14 +140,14 @@ class Task(ABC):
         
         categorical_preprocessing = Pipeline(
             [
-                #('mark_missing', SimpleImputer(strategy='most_frequent')),# If there is more than one such value, only the smallest is returned.
+                ('mark_missing', SimpleImputer(strategy='most_frequent')),# If there is more than one such value, only the smallest is returned.
                 ('one_hot_encode', OneHotEncoder(handle_unknown='ignore'))
             ]
         )
 
         numerical_preprocessing = Pipeline(
             [
-                #('mark_missing', SimpleImputer(strategy='mean')),
+                ('mark_missing', SimpleImputer(strategy='mean')),
                 ('scaling',  StandardScaler())
             ]
         )
@@ -337,7 +337,7 @@ class BinaryClassificationTask(Task):
             'learner__alpha': [0.00001, 0.0001, 0.001, 0.01]
         }
         rng = np.random.RandomState(5) #PD 
-        print(rng, "random seed for SGD Classifier") #PD
+#        print(rng, "random seed for SGD Classifier") #PD
         pipeline = Pipeline(
             [
                 ('features', feature_transformation),
@@ -360,7 +360,7 @@ class BinaryClassificationTask(Task):
         """
 
         super().get_baseline_performance()
-        print("get_baseline_performance")#PD
+#        print("get_baseline_performance")#PD
         print(self.test_data)
        
         predictions = self._baseline_model.predict(self.test_data)
@@ -464,7 +464,7 @@ class MultiClassClassificationTask(Task):
             'learner__alpha': [0.00001, 0.0001, 0.001, 0.01]
         }
         rng = np.random.RandomState(5) #PD 
-        print(rng, "random seed for SGD Classifier") #PD
+#        print(rng, "random seed for SGD Classifier") #PD
         pipeline = Pipeline(
             [
                 ('features', feature_transformation),
@@ -589,7 +589,7 @@ class RegressionTask(Task):
             'learner__alpha': [0.00001, 0.0001, 0.001, 0.01]
         }
         rng = np.random.RandomState(5) #PD 
-        print(rng, "random seed for SGD #regressor") #PD
+#        print(rng, "random seed for SGD #regressor") #PD
         pipeline = Pipeline(
             [
                 ('features', feature_transformation),
@@ -664,7 +664,7 @@ class TabularCorruption(DataCorruption):
 
     def sample_rows(self, data):
     #def sample_rows(self, data, seed):
-        #print(seed, "seed in sample_rows START")
+
         # Completely At Random
         if self.sampling.endswith('CAR'):
         #    np.random.seed(seed)#
@@ -685,28 +685,17 @@ class TabularCorruption(DataCorruption):
 
             # At Random
             elif self.sampling.endswith('AR'):
-                
                 columns_temp_ar = data.loc[:, data.columns != self.column]
-                #print(data, "Data Columns")
-                #print(self.column, "column which is dropped")
-                #print(columns_temp_ar)
-                #list_for_columns = list(set(data.columns) - {self.column})
                 list_for_columns = list(columns_temp_ar.columns)
                 
-                #print(list_for_columns)
-        #        np.random.RandomState(seed)#
-        #        print(seed, "seed for AR 1.1")
                 depends_on_col = np.random.choice(list_for_columns)
+                
+                #list_for_columns = list(set(data.columns) - {self.column})
                 #depends_on_col = np.random.choice(list(set(data.columns) - {self.column}))
-                print(depends_on_col)
-                #print(seed, "seed for AR 1.2")
-                # pick a random percentile of values in other column
-        #        np.random.seed(seed)#
-                #print(seed, "seed for AR 2")
+#                print(depends_on_col)
+
                 rows = data[depends_on_col].sort_values().iloc[perc_idx].index
-                print(rows)
-                #print(seed, "seed for AR 2.2")
-                print("_____________________")
+#                print(rows)
         else:
             ValueError(f"sampling type '{self.sampling}' not recognized")
 
