@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List, Tuple
 
 import typer
+
 from jenga.tasks.openml import (
     OpenMLBinaryClassificationTask,
     OpenMLMultiClassClassificationTask,
@@ -17,6 +18,8 @@ from data_imputation_paper.imputation.dl import AutoKerasImputer
 from data_imputation_paper.imputation.generative import GAINImputer, VAEImputer
 from data_imputation_paper.imputation.ml import ForestImputer, KNNImputer
 from data_imputation_paper.imputation.simple import ModeImputer
+
+
 
 IMPUTER_CLASS = {
     "mode": ModeImputer,
@@ -86,6 +89,9 @@ IMPUTER_ARGUMENTS = {
     }
 }
 
+
+
+
 binary_task_id_mappings = json.loads(Path("../data/raw/binary.txt").read_text())
 multi_task_id_mappings = json.loads(Path("../data/raw/multi.txt").read_text())
 regression_task_id_mappings = json.loads(Path("../data/raw/regression.txt").read_text())
@@ -126,7 +132,7 @@ def get_strategies(strategies) -> List[str]:
     return return_value
 
 
-def get_id_imputer_class_tuple(task_id: int) -> Tuple[int, OpenMLTask]:
+def get_id_imputer_class_tuple(experiment_name, task_id: int) -> Tuple[int, OpenMLTask]:
 
     if task_id in BINARY_TASK_IDS:
         task_class = OpenMLBinaryClassificationTask
@@ -168,9 +174,12 @@ def main(
 
     if experiment_path.exists():
         raise ValueError(f"Experiment at '{experiment_path}' already exist")
+#    global subset_exp
+#    subset_exp=True if "subset" in experiment_name else False
+#    print(subset_exp,"Subset Bool")
 
     experiment = Experiment(
-        task_id_class_tuples=[get_id_imputer_class_tuple(task_id)],
+        task_id_class_tuples=[get_id_imputer_class_tuple(experiment_name, task_id)],
         missing_fractions=get_missing_fractions(missing_fractions),
         missing_types=get_missing_types(missing_types),
         strategies=get_strategies(strategies),
@@ -179,7 +188,9 @@ def main(
         num_repetitions=num_repetitions,
         base_path=base_path,
         timestamp=experiment_name,
-        fully_observed=False if "corrupted" in experiment_name else True
+        fully_observed=False if "corrupted" in experiment_name else True,
+#        subset_exp=subset_exp,
+#        subset_exp=True if "subset" in experiment_name else False
     )
     experiment.run(task_id_mappings[f"{task_id}"])
 

@@ -43,40 +43,17 @@ class EvaluationResult(object):
             self._baseline_metric = ("MAE", "MSE", "RMSE")
 
         self._baseline_performance = self._task.get_baseline_performance()
-
         self._set_imputation_task_type()
 
     def append(
         self,
-        target_column: str,
-        train_data_imputed: pd.DataFrame,
-        test_data_imputed: pd.DataFrame,
-        test_data_corrupted: pd.DataFrame,
-        train_imputed_mask: pd.Series,
-        test_imputed_mask: pd.Series,
-        elapsed_time: float,
-        best_hyperparameters: Dict[str, List[dict]]
+#        target_column: str,
     ):
 
         if self._finalized:
             raise EvaluationError("Evaluation already finalized")
 
-        self._update_results(
-            train=self._task.train_data.loc[train_imputed_mask, target_column],
-            train_imputed=train_data_imputed.loc[train_imputed_mask, target_column],
-            test=self._task.test_data.loc[test_imputed_mask, target_column],
-            test_imputed=test_data_imputed.loc[test_imputed_mask, target_column],
-            imputation_type=self._imputation_task_type
-        )
-        test_data_corrupted.to_csv("test_data_corrupted_before_predict.csv")
-        predictions_on_corrupted = self._task._baseline_model.predict(test_data_corrupted)
-        #pd.Dataframe(predictions_on_corrupted).to_csv("predictions_on_corrupted.csv")
-        #np.savetxt('predictions_on_corrupted.txt', predictions_on_corrupted, delimiter=',') 
-        print(predictions_on_corrupted)
-        score_on_corrupted = self._task.score_on_test_data(predictions_on_corrupted)
 
-        predictions_on_imputed = self._task._baseline_model.predict(test_data_imputed)
-        score_on_imputed = self._task.score_on_test_data(predictions_on_imputed)
 
         self.downstream_performances.append(
             pd.DataFrame(
@@ -86,22 +63,10 @@ class EvaluationResult(object):
                         self._baseline_metric[1]: self._baseline_performance[1],
                         self._baseline_metric[2]: self._baseline_performance[2]
                     },
-                    "corrupted": {
-                        self._baseline_metric[0]: score_on_corrupted[0],
-                        self._baseline_metric[1]: score_on_corrupted[1],
-                        self._baseline_metric[2]: score_on_corrupted[2]
-                    },
-                    "imputed": {
-                        self._baseline_metric[0]: score_on_imputed[0],
-                        self._baseline_metric[1]: score_on_imputed[1],
-                        self._baseline_metric[2]: score_on_imputed[2]
-                    }
                 }
             )
         )
 
-        self.elapsed_train_times.append(elapsed_time)
-        self.best_hyperparameters.append(best_hyperparameters)
 
         self.repetitions += 1
 
@@ -110,39 +75,18 @@ class EvaluationResult(object):
         if self._finalized:
             raise EvaluationError("Evaluation already finalized")
 
-        results_mean_list = []
-        results_std_list = []
-        for all_list in [self.results, self.downstream_performances]:
-            collected_results = pd.concat(all_list)
-            metrics = collected_results.index.unique()
 
-            results_mean_list.append(
-                pd.DataFrame(
-                    [
-                        collected_results.loc[metric].mean() for metric in metrics
-                    ],
-                    index=metrics
-                )
-            )
+        results_mean_list = self.downstream_performances
+        results_mean_list = results_mean_list[0]
+        results_mean_df = pd.DataFrame(results_mean_list, columns=['baseline'])
 
-            results_std_list.append(
-                pd.DataFrame(
-                    [
-                        collected_results.loc[metric].std() for metric in metrics
-                    ],
-                    index=metrics
-                )
-            )
-
-        self.result, self.downstream_performance = results_mean_list
-        self.result_std, self.downstream_performance_std = results_std_list
-
-        self.elapsed_train_time = mean(self.elapsed_train_times)
-        self.elapsed_train_time_std = stdev(self.elapsed_train_times)
+        self.downstream_performance = results_mean_df
 
         self._finalized = True
 
         return self
+
+    
 
     def _set_imputation_task_type(self):
         if pd.api.types.is_numeric_dtype(self._task.train_data[self._target_column]):
@@ -269,58 +213,11 @@ class Evaluator(object):
         for target_column in self._target_columns:
 
             result_temp = EvaluationResult(self._task, target_column)
-
-            imputer = self._imputer_class(**self._imputer_arguments)
-            start_time = time.time()
-            imputer.fit(self._task.train_data.copy(), [target_column])
-            elapsed_time = time.time() - start_time
-
-            for _ in range(num_repetitions):
-                #print(_, "Repitition Number via print")
-                
-                
-                #print("__________________________________")
-                #print(_, "Repitition Number")
-                if (_ == 0):
-                    seed = 42
-                    print("Durchgang und Seed", _ , seed)
-                elif (_ == 1):
-                    seed = 50
-                    print("Durchgang und Seed", _ , seed)
-                elif (_ == 2):
-                    seed = 56
-                    print("Durchgang und Seed", _ , seed)
-
-                
-                train_data_corrupted, test_data_corrupted = self._discard_values(
-                    task=self._task,
-                    to_discard_columns=self._discard_in_columns,
-                    missing_fraction=self._missing_fraction,
-                    missing_type=self._missing_type,
-                    seed = seed
-                )
-                test_data_corrupted.to_csv("test_data_corrupted_before_append.csv")
-                # Fix that sometimes there are no missing values in the target column -> raises exception later on
-                if not train_data_corrupted[target_column].isna().any():
-                    train_data_corrupted.loc[random.choice(train_data_corrupted.index), target_column] = nan
-
-                if not test_data_corrupted[target_column].isna().any():
-                    test_data_corrupted.loc[random.choice(test_data_corrupted.index), target_column] = nan
-
-                train_imputed, train_imputed_mask = imputer.transform(train_data_corrupted)
-                test_imputed, test_imputed_mask = imputer.transform(test_data_corrupted)
-                
-                # NOTE: masks are DataFrames => append expects Series
-                result_temp.append(
-                    target_column=target_column,
-                    train_data_imputed=train_imputed,
-                    test_data_imputed=test_imputed,
-                    test_data_corrupted=test_data_corrupted,
-                    train_imputed_mask=train_imputed_mask[target_column],
-                    test_imputed_mask=test_imputed_mask[target_column],
-                    elapsed_time=elapsed_time,
-                    best_hyperparameters=imputer.get_best_hyperparameters()
-                )
+        
+            # NOTE: masks are DataFrames => append expects Series
+            result_temp.append(
+                #target_column=target_column,
+            )
 
             result[target_column] = result_temp.finalize()
 
@@ -342,13 +239,11 @@ class Evaluator(object):
         to_discard_columns: List[str],
         missing_fraction: float,
         missing_type: str,
-        seed: int,
+ #       seed: int,
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
 
         columns = to_discard_columns
         fraction = missing_fraction / len(columns)
-        print(missing_type,"Missingness Pattern in evaluation_discard_values")
-        #print(seed, "Seed in discard_values")
         missing_values = []
         for column in columns:
             missing_values.append(MissingValues(column=column, fraction=fraction, missingness=missing_type))
@@ -360,8 +255,8 @@ class Evaluator(object):
         for missing_value in missing_values:
             #train_data = missing_value.transform(train_data)
             #test_data = missing_value.transform(test_data)
-            train_data = missing_value.transform(train_data, seed)
-            test_data = missing_value.transform(test_data, seed)
+            train_data = missing_value.transform(train_data)
+            test_data = missing_value.transform(test_data)
 
         return (train_data, test_data)
 
@@ -375,20 +270,7 @@ class Evaluator(object):
                 column_string = column.replace("/", ":")
 
                 # Mean results
-                self._result[column].result.to_csv(self._path / f"impute_performance_mean_{column_string}.csv")
                 self._result[column].downstream_performance.to_csv(self._path / f"downstream_performance_mean_{column_string}.csv")
-
-                # Standard deviation results
-                self._result[column].result_std.to_csv(self._path / f"impute_performance_std_{column_string}.csv")
-                self._result[column].downstream_performance_std.to_csv(self._path / f"downstream_performance_std_{column_string}.csv")
-
-                Path(self._path / f"elapsed_train_time_{column_string}.json").write_text(json.dumps(
-                    {
-                        "mean": self._result[column].elapsed_train_time,
-                        "std": self._result[column].elapsed_train_time_std
-                    }
-                ))
-                Path(self._path / f"best_hyperparameters_{column_string}.json").write_text(json.dumps(self._result[column].best_hyperparameters))
 
                 results_path = self._path / column_string
                 results_path.mkdir(parents=True, exist_ok=True)

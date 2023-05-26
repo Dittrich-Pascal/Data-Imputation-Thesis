@@ -2,4 +2,4 @@
 Contributors
 ============
 
-* Sebastian Jäger <message@sebastian-jaeger.me>
+* Pascal Dittrich <pascal96.dittrich@gmx.de>

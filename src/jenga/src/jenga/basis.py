@@ -119,7 +119,7 @@ class Task(ABC):
         Returns:
             BaseEstimator: Trained model
         """
-        print(train_data, "train_data in fit_baseline_model_guggug")
+
         if (train_data is None and train_labels is not None) or (train_data is not None and train_labels is None):
             raise ValueError("either set both parameters (train_data, train_labels) or non")
 
@@ -127,7 +127,7 @@ class Task(ABC):
 
         # shortcut if model is already trained
         if use_original_data and self._baseline_model:
-            print("guggug____________model already trained")
+
             return self._baseline_model
         
         if use_original_data:
@@ -337,7 +337,7 @@ class BinaryClassificationTask(Task):
             'learner__alpha': [0.00001, 0.0001, 0.001, 0.01]
         }
         rng = np.random.RandomState(5) #PD 
-        print(rng, "random seed for SGD Classifier") #PD
+#        print(rng, "random seed for SGD Classifier") #PD
         pipeline = Pipeline(
             [
                 ('features', feature_transformation),
@@ -360,7 +360,7 @@ class BinaryClassificationTask(Task):
         """
 
         super().get_baseline_performance()
-        print("get_baseline_performance")#PD
+#        print("get_baseline_performance")#PD
         print(self.test_data)
        
         predictions = self._baseline_model.predict(self.test_data)
@@ -464,7 +464,7 @@ class MultiClassClassificationTask(Task):
             'learner__alpha': [0.00001, 0.0001, 0.001, 0.01]
         }
         rng = np.random.RandomState(5) #PD 
-        print(rng, "random seed for SGD Classifier") #PD
+#        print(rng, "random seed for SGD Classifier") #PD
         pipeline = Pipeline(
             [
                 ('features', feature_transformation),
@@ -589,7 +589,7 @@ class RegressionTask(Task):
             'learner__alpha': [0.00001, 0.0001, 0.001, 0.01]
         }
         rng = np.random.RandomState(5) #PD 
-        print(rng, "random seed for SGD #regressor") #PD
+#        print(rng, "random seed for SGD #regressor") #PD
         pipeline = Pipeline(
             [
                 ('features', feature_transformation),
@@ -664,7 +664,7 @@ class TabularCorruption(DataCorruption):
 
     def sample_rows(self, data):
     #def sample_rows(self, data, seed):
-        #print(seed, "seed in sample_rows START")
+
         # Completely At Random
         if self.sampling.endswith('CAR'):
         #    np.random.seed(seed)#
@@ -692,12 +692,10 @@ class TabularCorruption(DataCorruption):
                 
                 #list_for_columns = list(set(data.columns) - {self.column})
                 #depends_on_col = np.random.choice(list(set(data.columns) - {self.column}))
-                print(depends_on_col)
+#                print(depends_on_col)
 
                 rows = data[depends_on_col].sort_values().iloc[perc_idx].index
-                print(rows)
-                #print(seed, "seed for AR 2.2")
-                print("_____________________")
+#                print(rows)
         else:
             ValueError(f"sampling type '{self.sampling}' not recognized")
 
