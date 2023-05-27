@@ -3,6 +3,8 @@ from pathlib import Path
 import json
 
 
+# scripts to run multiple experiments 
+
 
 # Binary Experiments
 
@@ -88,7 +90,7 @@ for i in REGRESSION_TASK_IDS:
     for j in methods:
         os.system(f"python run-experiment.py {i} {j} corrupted_regression_experiment_subset --missing-fractions 0.01,0.1,0.3,0.5 --missing-types MCAR,MAR,MNAR --strategies single_single --num-repetitions 3 --base-path ../results")
 
-
+ 
 
 
 # Binary Baseline Experiments
