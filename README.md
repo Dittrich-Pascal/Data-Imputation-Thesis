@@ -15,7 +15,7 @@ https://www.frontiersin.org/article/10.3389/fdata.2021.693674
 
 ## Installation
 
-Required steps to set up the required conda environment:
+Steps to set up the required conda environment:
 
 1. create an environment `Data-Imputation-Thesis` with [conda],
    ```bash
@@ -34,6 +34,16 @@ Required steps to set up the required conda environment:
    ```bash
    cd ../..
    python setup.py develop # or `install`
+   ```
+It might be necessary to install the required GPU drivers manually (Version might change based on used hardware):
+   ```bash
+   conda install -c conda-forge cudatoolkit=11.7.0
+   pip install nvidia-cudnn-cu11==8.6.0.163
+   ```
+Activate the packages every time you activate the environment:
+   ```bash
+   CUDNN_PATH=$(dirname $(python -c "import nvidia.cudnn;print(nvidia.cudnn.__file__)"))
+   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/:$CUDNN_PATH/lib
    ```
 
 ## Usage
