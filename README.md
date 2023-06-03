@@ -1,4 +1,4 @@
-# Source Code for the Masterthesis: Assessing and Predicting the Optimal Impution Method Regarding the Predictive Performance of Machine Learning Models
+# Source Code for Masterthesis: Assessing and Predicting the Optimal Imputation Method Regarding the Predictive Performance of Machine Learning Models
 
 ## Target 
 An optimization approach for decision making in data science based on benchmarking the impact of different data imputation methods on the predictive performance of machine learning models.
